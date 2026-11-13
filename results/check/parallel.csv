@@ -1,0 +1,2 @@
+workers,run,job_id,text_length,occurrences,read_time_s,total_time_s,worker_times_s
+4,1,0,1000000,175,0.015,0.143,"0.090, 0.098, 0.090, 0.090"
