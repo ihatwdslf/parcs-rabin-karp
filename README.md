@@ -13,15 +13,11 @@
 
 **Рабін–Карп.** Кожен рядок довжини m перетворюється на число – поліноміальний хеш:
 
-&#x20;   h(s) = (s\[0]·B^(m-1) + s\[1]·B^(m-2) + … + s\[m-1]) mod M,   B = 256, M = 1 000 000 007
-
-
+    h(s) = (s[0]·B^(m-1) + s[1]·B^(m-2) + … + s[m-1]) mod M,   B = 256, M = 1 000 000 007
 
 Хеш кожного наступного вікна тексту обчислюється з попереднього за O(1) (ковзний хеш):
 
-&#x20;   h\_next = ((h − s\[i]·B^(m-1))·B + s\[i+m]) mod M
-
-
+    h_next = ((h − s[i]·B^(m-1))·B + s[i+m]) mod M
 
 Якщо хеш вікна збігся з хешем шаблону, рядки додатково порівнюються напряму,
 бо різні рядки зрідка мають однаковий хеш (колізія). Складність – O(N + m·K)
@@ -30,46 +26,40 @@
 **Паралельна версія (map-reduce).** Кількість вікон P = N − m + 1 ділиться на k рівних
 діапазонів за кількістю воркерів:
 
-&#x20;   start = P·i // k,   end = P·(i+1) // k
+    start = P·i // k,   end = P·(i+1) // k
 
-
-
-Воркер i отримує фрагмент `text\\\[start : end + m − 1]`. Фрагменти сусідніх воркерів
+Воркер i отримує фрагмент `text[start : end + m − 1]`. Фрагменти сусідніх воркерів
 перекриваються на m − 1 символів, тому входження на межах не губляться, а кожне
 вікно перевіряється рівно одним воркером. Майстер об'єднує знайдені позиції.
 
 ## Файли
 
-|Файл|Призначення|
-|-|-|
-|`solution/rk\\\_parallel.py`|паралельна версія для PARCS (один файл, Python 2.7 і 3)|
-|`solution/rk\\\_sequential.py`|послідовна версія|
-|`solution/rabin\\\_karp.py`|алгоритм для послідовної версії|
-|`tools/generate\\\_text.py`|генерація вхідного тексту з вставленими шаблонами|
-|`tools/run\\\_local\\\_parallel.py`|локальна перевірка паралельної версії без PARCS|
-|`tools/gcp\\\_up.sh`, `tools/gcp\\\_down.sh`|створення та видалення кластера в Google Cloud|
-|`tools/run\\\_measurements.sh`|заміри паралельної версії на кластері|
-|`tools/run\\\_sequential.sh`|заміри послідовної версії на VM майстра|
-|`tests/test\\\_correctness.py`|тести правильності|
-|`input/example.txt`|маленький приклад|
-|`input/text\\\_1m.txt`|текст на 1 млн символів для швидкої перевірки|
+| Файл | Призначення |
+|---|---|
+| `solution/rk_parallel.py` | паралельна версія для PARCS (один файл, Python 2.7 і 3) |
+| `solution/rk_sequential.py` | послідовна версія |
+| `solution/rabin_karp.py` | алгоритм для послідовної версії |
+| `tools/generate_text.py` | генерація вхідного тексту з вставленими шаблонами |
+| `tools/run_local_parallel.py` | локальна перевірка паралельної версії без PARCS |
+| `tools/gcp_up.sh`, `tools/gcp_down.sh` | створення та видалення кластера в Google Cloud |
+| `tools/run_measurements.sh` | заміри паралельної версії на кластері |
+| `tools/run_sequential.sh` | заміри послідовної версії на VM майстра |
+| `tests/test_correctness.py` | тести правильності |
+| `input/example.txt` | маленький приклад |
+| `input/text_1m.txt` | текст на 1 млн символів для швидкої перевірки |
 
 ## Формат вхідного файлу
 
-&#x20;   2                      ← кількість шаблонів
-abra                   ← шаблони (однакової довжини)
-cada
-abracadabra\_abracadabra   ← текст одним рядком
-
-
+    2                      ← кількість шаблонів
+    abra                   ← шаблони (однакової довжини)
+    cada
+    abracadabra_abracadabra   ← текст одним рядком
 
 ## Локальний запуск (Python 3, без додаткових бібліотек)
 
-&#x20;   python tests/test\_correctness.py
-python solution/rk\_sequential.py input/text\_1m.txt output\_sequential.txt
-python tools/run\_local\_parallel.py input/text\_1m.txt output\_parallel.txt 4
-
-
+    python tests/test_correctness.py
+    python solution/rk_sequential.py input/text_1m.txt output_sequential.txt
+    python tools/run_local_parallel.py input/text_1m.txt output_parallel.txt 4
 
 Локальний запуск потрібен лише для перевірки правильності.
 Заміри для звіту виконуються на кластері PARCS у Google Cloud.
@@ -79,11 +69,19 @@ python tools/run\_local\_parallel.py input/text\_1m.txt output\_parallel.txt 4
 Великий файл не зберігається в репозиторії, він відтворюється командою
 (однакове зерно завжди дає однаковий файл):
 
-&#x20;   python tools/generate\_text.py 100000000 input/text\_100m.txt --seed 42
-
-
+    python tools/generate_text.py 100000000 input/text_100m.txt --seed 42
 
 Шаблони: `parallel` (100 вставок), `computer` (50), `hashcode` (25)
 і контрольний `notfound`, якого в тексті немає.
 Використано лише згенерований випадковий текст.
 
+## Результати (Google Cloud, n1-standard-1, 100 млн символів, середнє з 3 прогонів)
+
+| Конфігурація | Час, с | Прискорення | Ефективність |
+|---|---|---|---|
+| Послідовна версія | 37,85 | 1,00 | – |
+| PARCS, 1 воркер | 41,67 | 0,91 | 91 % |
+| PARCS, 2 воркери | 23,12 | 1,64 | 82 % |
+| PARCS, 4 воркери | 12,94 | 2,93 | 73 % |
+
+Сирі дані та вихідні файли – у `results/rabin_karp/`, графік – `results/rabin_karp/speedup.png`.
